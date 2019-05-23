@@ -9,17 +9,8 @@ import matplotlib.pyplot as plt
 #import IP as ip
 import skimage.io as io
 
-#train_data= 'C:/Users/Sneha/Desktop/abc/Output'
-#train_data = 'C:/Users/dulam/Desktop/Advanced_CV/Sneha Project/abc/Output'
-train_data = 'C:/Users/dulam/Desktop/Advanced_CV/Sneha_Project/testing'
-#train_data = 'C:/Users/dulam/Desktop/Advanced_CV/Sneha_Project/alltrain'
-#test_data = 'C:/Users/dulam/Desktop/Advanced_CV/Sneha Project/testing'
-test_data = 'C:/Users/dulam/Desktop/Advanced_CV/Sneha_Project/Final_test'
-#test_data=  'C:/Users/Sneha/Desktop/samples/testing'
-#train_data = "../input/testing_bfr/testing/"
-#test_data = "../input/sampletest/sampletest/"
-#segment_data = "C:/Users/dulam/Desktop/Advanced_CV/Sneha_Project/real/"
-segment_label = "C:/Users/dulam/Desktop/Advanced_CV/Sneha_Project/segimaages/"
+train_data = '' # Training data
+test_data = '' # Testing data
 
 tf.random.set_random_seed(1234)
 
@@ -30,7 +21,6 @@ sess = tf.Session(config=config)
 size = 224
 batch_size = 5
 X = tf.placeholder(tf.float32 , [None,size,size,1])
-#X_reshaped = tf.reshape(X , [-1,size,size,1])
 Y = tf.placeholder(tf.float32 , [None , 10])
 droupout_prob = tf.placeholder(tf.float32)
 X_pred = tf.placeholder(tf.float32 , [None,size,size,3])
@@ -77,15 +67,12 @@ def one_hot_label(img):
 
 def train_data_with_label():
     train_images=[]
-    #print("hi")
     for i in tqdm(os.listdir(train_data)):
         path=os.path.join(train_data,i)
         img=cv2.imread(path,cv2.IMREAD_GRAYSCALE)
         img=cv2.resize(img,(size,size))
         train_images.append([np.array(img),one_hot_label(i)])
     shuffle(train_images)
-    #print("hi")
-    #print("\nTraining images:",len(train_images))
     return train_images
 
 
@@ -100,25 +87,6 @@ def test_data_with_label():
         shuffle(test_images)
     return test_images
 
-
-'''def segmented_train_data_with_label():
-    segment_images=[]
-    #print("hi")
-    for i in tqdm(os.listdir(segment_label)):
-        path=os.path.join(segment_label,i)
-        path_label = os.path.join(segment_label,i)
-        #print(path)
-        img=io.imread(path)
-        img = cv2.resize(img, (size,size))
-        #print(type(img))
-        img_label = cv2.imread(path_label)
-        img_label = cv2.resize(img_label,(size,size))
-        segment_images.append([np.array(img),np.array(img_label)])
-    shuffle(segment_images)
-    #print("hi")
-    #print("\nTraining images:",len(train_images))
-    return segment_images'''
-
 def important_function(c):
 	# This function will give the modified images.
 	y = np.empty(c.shape[:-1])
@@ -131,10 +99,6 @@ def important_function(c):
 			for g in range(c.shape[2]):
 				if k == c[i,j,g]:
 					y[i,j] = g
-					'''if g == 2:
-						y[i,j] = -1
-					else:
-						y[i,j] = g'''
 	return y
 
 
@@ -159,31 +123,19 @@ def segmented_train_data_with_label():
 	return segment_images
 
 
-#training_images = train_data_with_label()
-#testing_images = test_data_with_label()
+training_images = train_data_with_label()
+testing_images = test_data_with_label()
 segment_images = segmented_train_data_with_label()
 
-'''tr_img_data = np.array([i[0] for i in training_images]).reshape(-1,size,size,1)
+tr_img_data = np.array([i[0] for i in training_images]).reshape(-1,size,size,1)
 tr_lbl_data = np.array([i[1] for i in training_images])
 
 tst_img_data = np.array([i[0] for i in testing_images]).reshape(-1,size,size,1)
-tst_lbl_data = np.array([i[1] for i in testing_images])'''
+tst_lbl_data = np.array([i[1] for i in testing_images])
 
 tr_segment_data = np.array([i[0] for i in segment_images]).reshape(-1,size,size,3)
 tr_segment_lbl = np.array([i[1] for i in segment_images]).reshape(-1,size,size)
 tr_segment = np.array([i[2] for i in segment_images]).reshape(-1,size,size,3)
-
-'''def take_only(test_img_batch):
-
-	return test_img_batch[:,:,:,:2]'''
-
-'''def for_display(img):
-	print(img.shape)
-	z = np.zeros((img.shape[0], img.shape[1], img.shape[2]))
-	img_final = np.stack([img[:,:,:,0],img[:,:,:,1],z], axis = -1)
-	print("VAMMO", img_final.shape)
-	img_final = np.reshape(img_final, (img_final.shape[1], img_final.shape[2], img_final.shape[3]))
-	return img_final'''
 
 def vgg(X,droupout_prob, train, circ = False, circ1 = False, segmentation = False):
 
@@ -312,8 +264,6 @@ def vgg(X,droupout_prob, train, circ = False, circ1 = False, segmentation = Fals
 	shape = layer5.get_shape().as_list()
 
 	#FIRST DENSE LAYER
-	#kernel4 = [shape[1] * shape[2] * shape[3],500]
-	#filter14 = tf.Variable(tf.random_normal(kernel6 , stddev = 0.05))
 	filter14 = tf.Variable(initial(kernel6))
 	#bias14 = tf.Variable(initial([kernel6[-1]]))
 	shapestraight = [-1 , shape[1] * shape[2] * shape[3]]
@@ -323,7 +273,6 @@ def vgg(X,droupout_prob, train, circ = False, circ1 = False, segmentation = Fals
 	print("Layer-6",layer6.get_shape().as_list())
 
 	#SECOND DENSE LAYER
-	#filter15 = tf.Variable(tf.random_normal(kernel7, stddev = 0.05))
 	filter15 = tf.Variable(initial(kernel7))
 	#bias15 = tf.Variable(initial([kernel7[-1]]))
 	layer7 = tf.nn.relu(tf.matmul(layer6, filter15))
@@ -331,7 +280,6 @@ def vgg(X,droupout_prob, train, circ = False, circ1 = False, segmentation = Fals
 	print("Layer-7",layer7.get_shape().as_list())
 
 	#OUTPUT LAYER
-	#filter16 = tf.Variable(tf.random_normal(kernel8 ,stddev = 0.05))
 	filter16 = tf.Variable(initial(kernel8))
 	#bias16 = tf.Variable(initial([kernel8[-1]]))
 	#layer8drop = tf.nn.dropout(layer4 , droupout_prob)
@@ -358,28 +306,21 @@ def DeepLab(X, rates = [1, 2, 4], mrates = [], mgrid = False, apply_batchnorm = 
 	initial = tf.contrib.layers.xavier_initializer()
 	# Applying Global Average pooling.
 	res = tf.reduce_mean(X, [1,2], name = 'global_pool', keepdims = True)
-	print("RES", res.get_shape().as_list())
 	k = tf.Variable(tf.random_normal([1, 1, 512, depth], stddev = 0.05))
 	image_level_features = tf.nn.conv2d(res, k, strides = [1, 1, 1, 1], padding = 'SAME', name = 'resize')
-	#image_level_features = tf.contrib.slim.conv2d(res, depth, [1, 1], scope="image_level_conv_1x1", activation_fn=None, weights_initializer = tf.initializers.random_normal(stddev = 0.05))
 	res_ = tf.image.resize_bilinear(image_level_features, (tf.shape(X)[1], tf.shape(X)[2]))
-	#filter_1 = tf.Variable(tf.random_normal([1, 1, 512, depth], stddev = 0.05))
 	filter_1 = tf.Variable(initial([1, 1, 512, depth]))
 	res = tf.nn.conv2d(X, filter_1, strides = [1, 1, 1, 1], padding = 'SAME', name = 'conv_1_1')
 
 	filter_2_1 = tf.Variable(initial([3, 3, 512, depth]))
 	filter_2_2 = tf.Variable(initial([3, 3, 512, depth]))
 	filter_2_3 = tf.Variable(initial([3, 3, 512, depth]))
-	#filter_2_1 = tf.Variable(tf.random_normal([3, 3, 512, depth], stddev = 0.05))
-	#filter_2_2 = tf.Variable(tf.random_normal([3, 3, 512, depth], stddev = 0.05))
-	#filter_2_3 = tf.Variable(tf.random_normal([3, 3, 512, depth], stddev = 0.05))
 	
 	res1 = tf.nn.conv2d(X, filter_2_1, strides = [1, 1, 1, 1], dilations = [1, rates[0], rates[0], 1], padding = 'SAME', name = 'conv_3_3_1')
 	res2 = tf.nn.conv2d(X, filter_2_2, strides = [1, 1, 1, 1], dilations = [1, rates[1], rates[1], 1], padding = 'SAME', name = 'conv_3_3_2')
 	res3 = tf.nn.conv2d(X, filter_2_3, strides = [1, 1, 1, 1], dilations = [1, rates[2], rates[2], 1], padding = 'SAME', name = 'conv_3_3_3')
 
 	final = tf.concat((res_, res, res1, res2, res3), axis = 3, name = 'concat')
-	#final_w = tf.Variable(tf.random_normal([1, 1, 5 * depth, depth], stddev = 0.05))
 	final_w = tf.Variable(initial([1, 1, 5 * depth, depth]))
 	final_ = tf.nn.conv2d(final, final_w, strides = [1, 1, 1, 1], padding = 'SAME', name = 'final_conv')
 
@@ -398,7 +339,6 @@ def complete_DeepLab(input_img, dropout, N = 3, bn = False):
 	X = vgg(input_img, droupout_prob = dropout, train = bn, circ = True, circ1 = False, segmentation = True) # change circ to False and circ1 to true for the output stride to be 8 rather than 16.
 
 	result = DeepLab(X)
-	#filter_final = tf.Variable(tf.random_normal([1, 1, 256, N], stddev = 0.05))
 	filter_final= tf.Variable(initial([1, 1, 256, N]))
 	res_ = tf.nn.conv2d(result, filter_final, strides = [1, 1, 1, 1], padding = 'SAME', name = 'conv_final')
 
@@ -418,45 +358,20 @@ def compute_iou(original, prediction):
 
 	return iou
 
-'''kernel = [3,3,1,64]
-kernel_ = [3,3,64,64]
-kernel2 = [3,3,64,128]
-kernel2_ = [3,3,128,128]
-kernel3 = [3,3,128,256]
-kernel3_ = [3,3,256,256]
-kernel4 = [3,3,256,512]
-kernel5 = [3,3,512,512]
-kernel6 = [7 * 7 * 512,4096]
-kernel7 = [4096,4096]
-kernel8 = [4096 , 10]'''
-
-#droupout_prob = tf.placeholder(tf.float32)
 is_train = tf.placeholder(tf.bool)
-#train_layer = vgg(X, kernel, kernel_, kernel2, kernel2_, kernel3, kernel3_, kernel4, kernel5, kernel6, kernel7, kernel8, droupout_prob, is_train)
-#train_layer = vgg(X, droupout_prob, is_train)
-
-#Y_ = tf.nn.softmax(train_layer)
-#correct = tf.equal(tf.argmax(Y,1) , tf.argmax(Y_,1))
-#accuracy = tf.reduce_mean(tf.cast(correct , tf.float32))
+train_layer = vgg(X, droupout_prob, is_train)
+Y_ = tf.nn.softmax(train_layer)
+correct = tf.equal(tf.argmax(Y,1) , tf.argmax(Y_,1))
+accuracy = tf.reduce_mean(tf.cast(correct , tf.float32))
 
 #cost = tf.nn.softmax_cross_entropy_with_logits_v2(labels = Y, logits = train_layer)
-#optimize = tf.train.MomentumOptimizer(learning_rate = 1e-4, momentum = 0.9).minimize(cost)
-#optimize = tf.train.GradientDescentOptimizer(0.000001).minimize(cost)
 feature_map_16 = complete_DeepLab(X_pred, dropout = droupout_prob, bn = is_train)
 iou = compute_iou(feature_map_16, Y_x)
-#shape = tf.shape(iou)
-#print("IOU SHAPE", type(iou))
-#update_ops = tf.get_collection(tf.GraphKeys.UPDATE_OPS)
-#recon_loss = tf.losses.mean_squared_error(labels = Y_true , predictions = feature_map_16)
 loss_cls = tf.nn.sparse_softmax_cross_entropy_with_logits(labels = Y_true, logits = feature_map_16)
-#with tf.control_dependencies(update_ops):
-    #optimize = tf.train.AdamOptimizer(learning_rate = 0.001).minimize(cost)
-    #optimize_segment =  tf.train.AdamOptimizer(learning_rate = 0.001).minimize(loss_cls)
+with tf.control_dependencies(update_ops):
+    optimize = tf.train.AdamOptimizer(learning_rate = 0.001).minimize(cost)
+    optimize_segment =  tf.train.AdamOptimizer(learning_rate = 0.001).minimize(loss_cls)
 optimize_segment =  tf.train.AdamOptimizer(learning_rate = 0.001).minimize(loss_cls)
-#feature_map_16 = complete_DeepLab(X_pred)
-#iou = compute_iou(feature_map_16, Y_true)
-#shape = tf.shape(iou)
-#print("IOU SHAPE", type(iou))
 
 init = tf.global_variables_initializer()
 
@@ -464,7 +379,7 @@ with tf.Session() as session:
 	session.run(init)
 
 	# TRAINING PHASE
-	'''for ep in range(1):
+	for ep in range(1):
 		batch_size = 1
 		print("Epoch number %d" %(ep))
 		x = 0
@@ -487,10 +402,10 @@ with tf.Session() as session:
 			ls.append(session.run(accuracy , feed_dict = data))
 			#print("Loss", session.run(cost, feed_dict = data))
 		print("Highest : ", max(ls))
-		print("Minimum : ",min(ls))'''
+		print("Minimum : ",min(ls))
 
 	# TESTING PHASE
-	'''print("TESTING PHASE!!")
+	print("TESTING PHASE!!")
 	testing = []
 	batch_size = 5
 	for i in range(int(len(tst_img_data)/batch_size)):
@@ -503,7 +418,8 @@ with tf.Session() as session:
 		#print(testing.shape)
 		#print(trainimg.shape)
 		data = {X : testimg , Y: testing , X_pred : np.zeros((batch_size, size, size, 3)), Y_x : np.zeros((batch_size, size, size, 3)), Y_true : np.zeros((batch_size, size, size)), is_train : False, droupout_prob: 1.0}
-		print(session.run(accuracy , feed_dict = data))'''
+		print(session.run(accuracy , feed_dict = data))
+	## Uncomment the below lines if the machine can handle all the testing data at once. (VRAM should be enough)
 	'''for i in tst_lbl_data:
 		testing.append(np.reshape(i, (-1, 10)))
 	testing = np.reshape(testing, (len(tst_lbl_data), 10))
@@ -524,11 +440,6 @@ with tf.Session() as session:
 			trainimg = tr_segment_data[batch_size * i : batch_size * (i+1)]
 			trainlbl = tr_segment_lbl[batch_size * i : batch_size * (i+1)]
 			train_ = tr_segment[batch_size * i : batch_size * (i+1)]
-			'''for i in trainlbl:
-				testing.append(np.reshape(i, (-1, 10)))
-			testing = np.reshape(testing, (batch_size, 10))'''
-			#print(testing.shape)
-			#print(trainimg.shape)
 			data = {X : np.zeros((batch_size, size, size, 1)), Y : np.zeros((batch_size, 10)) ,X_pred : trainimg , Y_true : trainlbl , Y_x : train_ ,  is_train : False, droupout_prob: 1.0}
 			session.run(optimize_segment , feed_dict = data)
 			ls.append(session.run(iou , feed_dict = data))
@@ -536,7 +447,7 @@ with tf.Session() as session:
 		print("Highest : ", max(ls))
 		print("Minimum : ",min(ls))
 
-	'''print("SEGMENTATION TESTING PHASE")
+	print("SEGMENTATION TESTING PHASE")
 	for _ in range(1):
 		img = ip.imread('000045.jpg')
 		print(img.shape)
@@ -546,10 +457,9 @@ with tf.Session() as session:
 		img_true = cv2.resize(img_true,(size,size))
 		img_true = np.reshape(img_true[:,:,:-1], (1, size, size, 3))
 		data = {X : np.zeros((batch_size, size, size, 1)), Y : np.zeros((batch_size, 10)), X_pred : img, Y_true : img_true[:,:,:,:], droupout_prob : 1.0, is_train : False}
-		#session.run(optimize_, feed_dict = data)
 		print(session.run(iou, feed_dict = data))
 		o = session.run(feature_map_16, feed_dict = {X_pred : img, droupout_prob : 1.0, is_train : False})
 		o = np.reshape(o, (o.shape[1], o.shape[2], o.shape[3]))
 		print(o.shape)
 		ip.imshow(o)
-		plt.show()'''
+		plt.show()
