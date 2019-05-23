@@ -6,7 +6,6 @@ from random import shuffle
 from tqdm import tqdm
 import tensorflow as tf
 import matplotlib.pyplot as plt
-#import IP as ip
 import skimage.io as io
 
 train_data = '' # Training data
