@@ -1,2 +1,2 @@
 # Image-Segmentation.
-Implementation of Deeplab version 3 for semantic segmentation in cyberbullying images. 
+Implementation of Deeplab version 3 in TensorFlow for Semantic Segmentation in cyberbullying images. Please note that the implementation doesn't include the Multi-Grid system that has been used in the original paper. Also, the baseline here is a VGG16 network implemented in TensorFlow. The main difference here is change in loss function. The Loss function is a sum of classification loss for each pixel of the image and also the classification loss coming from the VGG16 for classifying an image into one of the classes of cyberbullying.
