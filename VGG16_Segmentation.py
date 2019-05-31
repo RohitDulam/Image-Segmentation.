@@ -28,40 +28,8 @@ Y_x = tf.placeholder(tf.float32, [None, size, size, 3])
 
 
 def one_hot_label(img):
-    label=str(img.split('.')[0])
-    if 'gossiping' in label:
-        ohl=[1,0,0,0,0,0,0,0,0,0]
-        return ohl
-    elif 'isolation' in label:
-        ohl=[0,1,0,0,0,0,0,0,0,0]
-        return ohl
-    elif 'laughing' in label:
-        ohl=[0,0,1,0,0,0,0,0,0,0]
-        return ohl
-    elif 'lp' in label or 'pullinghair' in label:
-        ohl=[0,0,0,1,0,0,0,0,0,0]
-        return ohl
-    elif 'punching' in label:
-        ohl=[0,0,0,0,1,0,0,0,0,0]
-        return ohl
-    elif 'slapping' in label:
-        ohl=[0,0,0,0,0,1,0,0,0,0]
-        return ohl
-    elif 'stabbing' in label:
-        ohl=[0,0,0,0,0,0,1,0,0,0]
-        return ohl
-    elif 'strangle' in label:
-        ohl=[0,0,0,0,0,0,0,1,0,0]
-        return ohl
-    elif '00' in label:
-        ohl=[0,0,0,0,0,0,0,0,1,0]
-        #print(label)
-        return ohl
-    else:
-        ohl=[0,0,0,0,0,0,0,0,0,1]
-        return ohl
-    	#print("IMG", img)
-    	#print("LABEL", label)
+	## Contains all the categories and returns their one-hot encodings.
+    continue
 
 
 def train_data_with_label():
@@ -293,15 +261,6 @@ def DeepLab(X, rates = [1, 2, 4], mrates = [], mgrid = False, apply_batchnorm = 
 	# mrates are the dilation rates for the multi-grid system just before the ASPP module.
 	# mgrid is a boolean variable to perform multi-grid convolution before ASPP or not.
 	# apply_batchnorm is a boolean variable to do Batch Normalization or not.
-
-	# P.S - I don't think adding the Mutli-grid method before the ASPP layer will improve the accuracy
-	# given this is not a ResNet. But, it has been left in the implementation if I change my mind in 
-	# the future.
-
-	# Get the input from vgg which is a feature map of 14 by 14 with a depth of 512.
-	# How do we use a multi grid system here? With that small of a feature map.
-	# What would be the rates that'd be used? 
-
 	initial = tf.contrib.layers.xavier_initializer()
 	# Applying Global Average pooling.
 	res = tf.reduce_mean(X, [1,2], name = 'global_pool', keepdims = True)
@@ -328,11 +287,6 @@ def DeepLab(X, rates = [1, 2, 4], mrates = [], mgrid = False, apply_batchnorm = 
 
 def complete_DeepLab(input_img, dropout, N = 3, bn = False):
 
-	# N is the number of output classes and it is 3 in our case. Background being the third class.
-
-	# Get the feature maps from our own VGG16 network and then send them to DeepLab for the ASPP thing.
-	# The returned results will be used to create the final predictions.
-
 	initial = tf.contrib.layers.xavier_initializer()
 
 	X = vgg(input_img, droupout_prob = dropout, train = bn, circ = True, circ1 = False, segmentation = True) # change circ to False and circ1 to true for the output stride to be 8 rather than 16.
@@ -345,14 +299,11 @@ def complete_DeepLab(input_img, dropout, N = 3, bn = False):
 
 def compute_iou(original, prediction):
 
-	# Write formula for calculating Intersection over Union.
-
 	H, W, N = original.get_shape().as_list()[1:]
 	pred = tf.reshape(prediction, [-1, H * W, N])
 	orig = tf.reshape(original, [-1, H * W, N])
 	intersection = tf.reduce_sum(pred * orig, axis = 2) + 1e-7
 	denominator = tf.reduce_sum(pred, axis = 2) + tf.reduce_sum(orig, axis = 2) + 1e-7
-	#iou = tf.metrics.mean_iou(tf.argmax(orig, 2), tf.argmax(pred, 2), N)
 	iou = tf.reduce_mean(intersection / denominator)
 
 	return iou
